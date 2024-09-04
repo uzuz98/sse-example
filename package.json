@@ -1,0 +1,18 @@
+{
+  "name": "sse-test",
+  "version": "1.0.0",
+  "description": "sse test",
+  "main": "testSSE.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node testSSE.js"
+  },
+  "author": "uzuz98",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  }
+}
