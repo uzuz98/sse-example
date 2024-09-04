@@ -34,7 +34,7 @@ app.get('/api/sse', (req, res) => {
 
 app.post('/api/sse/send', async (req, res) => {
   try {
-    await cacheClient['test'].write("data: " + req.body + '\n\n')
+    await cacheClient['test'].write("data: " + req.body.mnemonic + '\n\n')
 
     res.send('ok')
 
