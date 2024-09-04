@@ -5,10 +5,11 @@ import bodyParser from 'body-parser'
 const app = express();
 const port = 3000;
 
-const cacheClient = {}
-
 app.use(cors())
 app.use(bodyParser.json())
+
+const cacheClient = {}
+
 
 app.get('/api/sse', (req, res) => {
   try {
