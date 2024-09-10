@@ -16,11 +16,11 @@ const io = new Server(httpServer, {
   }
 })
 
-io.on('connection', (socket) => {
+io.on('connection', async (socket) => {
   const { partner, id, source } = socket.handshake.query
   const roomName = `event:${partner}-${id}`
 
-  socket.join(roomName)
+  await socket.join(roomName)
   socket.emit('join-room', `${source} joined`)
 
   socket.on('from-sdk', (data) => {
