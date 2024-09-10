@@ -1,8 +1,14 @@
 import { createServer } from 'http'
 import { Server } from 'socket.io'
+import express from 'express'
+import cors from 'cors'
+
+const app = express()
+app.use(cors())
+
 const PORT = 3001
 
-const httpServer = createServer()
+const httpServer = createServer(app)
 
 const io = new Server(httpServer, {
   cors: {
@@ -39,7 +45,4 @@ io.on('connection', (socket) => {
   })
 })
 
-const httpConnection = httpServer.listen(PORT)
-httpConnection.on('connect', () => {
-  console.log(`Connected on port ${PORT}`)
-})
+httpServer.listen(PORT)
