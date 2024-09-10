@@ -1,12 +1,12 @@
 import { createServer } from 'http'
 import { Server } from 'socket.io'
-import express from 'express'
+import * as express from 'express'
 import cors from 'cors'
 
 const app = express()
 app.use(cors())
 
-const PORT = 3001
+const PORT = 3000
 
 const httpServer = createServer(app)
 
@@ -20,8 +20,9 @@ io.on('connection', async (socket) => {
   const { partner, id, source } = socket.handshake.query
   const roomName = `event:${partner}-${id}`
 
+  console.log("🩲 🩲 => io.on => roomName:", roomName)
   await socket.join(roomName)
-  socket.emit('join-room', `${source} joined`)
+  socket.to(roomName).emit('join-room', `${source} joined`)
 
   socket.on('from-sdk', (data) => {
     console.log("🩲 🩲 => socket.on => data:", data)
