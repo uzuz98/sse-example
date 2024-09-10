@@ -1,12 +1,12 @@
 import { createServer } from 'http'
 import { Server } from 'socket.io'
-import * as express from 'express'
+import express from 'express'
 import cors from 'cors'
 
 const app = express()
 app.use(cors())
 
-const PORT = 3000
+const PORT = 3001
 
 const httpServer = createServer(app)
 
@@ -43,6 +43,10 @@ io.on('connection', async (socket) => {
           socket.leave(roomName)
         })
       })
+  })
+
+  socket.on('disconnect', () => {
+    socket.leave(roomName)
   })
 })
 
