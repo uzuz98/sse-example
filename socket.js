@@ -34,6 +34,10 @@ io.on('connection', async (socket) => {
     socket.to(roomName).emit('event-wallet', data)
   })
 
+  socket.on('sdk-login-telegram', (data) => {
+    socket.to(roomName).emit('token-login-telegram', data)
+  })
+
   socket.on('delete-room', (data) => {
     io
       .in(roomName)
