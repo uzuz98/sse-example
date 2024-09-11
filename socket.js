@@ -12,7 +12,10 @@ const httpServer = createServer(app)
 
 const io = new Server(httpServer, {
   cors: {
-    origin: '*',
+    origin: [
+      'https://frabjous-eclair-2ffb0f.netlify.app/',
+      '*'
+    ],
   }
 })
 
