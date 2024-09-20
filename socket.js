@@ -56,8 +56,10 @@ const EVENT_CONNECT = [
 io.on('connection', async (socket) => {
   const { partner, id, source } = socket.handshake.query
 
+  const ROOM_GENERAL = 'general'
+
   socket.on('accounts-changed', () => {
-    socket.emit('accounts-changed', true)
+    socket.to(ROOM_GENERAL).emit('accounts-changed', true)
   })
 
   socket.use(([event], next) => {
@@ -74,7 +76,7 @@ io.on('connection', async (socket) => {
 
   if (partner && id) {
     const roomName = `event:${partner}-${id}`
-    await socket.join(roomName)
+    await socket.join([roomName, ROOM_GENERAL])
     socket.to(roomName).emit('join-room', `${source} joined`)
 
     const handleQOSL1 = (eventName) => (data, callback) => {
