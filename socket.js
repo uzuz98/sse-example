@@ -58,11 +58,6 @@ io.on('connection', async (socket) => {
 
   const ROOM_GENERAL = 'general'
 
-  socket.on('accounts-changed', (data) => {
-    console.log("🩲 🩲 => socket.on => data:", data)
-    socket.to(ROOM_GENERAL).emit('accounts-changed', true)
-  })
-
   socket.use(([event], next) => {
     if (
       !EVENT_CONNECT.includes(event) &&
@@ -151,6 +146,11 @@ io.on('connection', async (socket) => {
   } else {
     socket.join(ROOM_GENERAL)
   }
+
+  socket.on('accounts-changed', (data) => {
+    console.log("🩲 🩲 => socket.on => data:", data)
+    socket.to(ROOM_GENERAL).emit('accounts-changed', true)
+  })
 })
 
 httpServer.listen(PORT)
