@@ -56,6 +56,10 @@ const EVENT_CONNECT = [
 io.on('connection', async (socket) => {
   const { partner, id, source } = socket.handshake.query
 
+  socket.use('accounts-changed', () => {
+    socket.emit('accounts-changed', true)
+  })
+
   socket.use(([event], next) => {
     if (
       !EVENT_CONNECT.includes(event) &&
