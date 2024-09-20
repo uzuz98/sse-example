@@ -62,7 +62,7 @@ io.on('connection', async (socket) => {
     if (
       !EVENT_CONNECT.includes(event) &&
       !socket.authorized &&
-      !event.includes('response'),
+      !event.includes('response') &&
       event !== 'accounts-changed'
     ) {
       next(new Error('not authorized'))
