@@ -56,7 +56,7 @@ const EVENT_CONNECT = [
 io.on('connection', async (socket) => {
   const { partner, id, source } = socket.handshake.query
 
-  socket.use('accounts-changed', () => {
+  socket.on('accounts-changed', () => {
     socket.emit('accounts-changed', true)
   })
 
