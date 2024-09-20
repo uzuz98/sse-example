@@ -58,7 +58,8 @@ io.on('connection', async (socket) => {
 
   const ROOM_GENERAL = 'general'
 
-  socket.on('accounts-changed', () => {
+  socket.on('accounts-changed', (data) => {
+    console.log("🩲 🩲 => socket.on => data:", data)
     socket.to(ROOM_GENERAL).emit('accounts-changed', true)
   })
 
@@ -147,6 +148,8 @@ io.on('connection', async (socket) => {
     socket.on('disconnect', () => {
       socket.leave(roomName)
     })
+  } else {
+    socket.join(ROOM_GENERAL)
   }
 })
 
