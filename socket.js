@@ -2,7 +2,6 @@ const { createServer } = require('http')
 const { Server } = require('socket.io')
 const express = require('express')
 const cors = require('cors')
-const jwt = require('jsonwebtoken')
 
 const eventName = {
   connectWallet: 'connect-wallet',
