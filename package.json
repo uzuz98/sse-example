@@ -5,8 +5,8 @@
   "main": "socket.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node telegram.js",
-    "dev": "nodemon telegram.js"
+    "start": "node socket.js",
+    "dev": "nodemon socket.js"
   },
   "author": "uzuz98",
   "license": "ISC",
