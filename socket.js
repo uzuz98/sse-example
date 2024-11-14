@@ -1,20 +1,8 @@
-import { createServer } from 'http'
-import { Server } from 'socket.io'
-import express from 'express'
-import cors from 'cors'
-import { recoverPersonalSignature } from 'eth-sig-util'
-
-export const decodeAddressFromSig = (sig, msg) => {
-  try {
-    const address = recoverPersonalSignature({
-      data: `0x${Buffer.from(msg, 'utf8').toString('hex')}`,
-      sig
-    })
-    return address
-  } catch (err) {
-    return ''
-  }
-}
+const { createServer } = require('http')
+const { Server } = require('socket.io')
+const express = require('express')
+const cors = require('cors')
+const jwt = require('jsonwebtoken')
 
 const eventName = {
   connectWallet: 'connect-wallet',
@@ -33,6 +21,10 @@ const getResponseEvent = (name) => {
 
 const app = express()
 app.use(cors())
+
+app.route('/health').get((req, res) => {
+  res.status(200).send('ok')
+})
 
 const PORT = 3001
 
@@ -54,9 +46,11 @@ const EVENT_CONNECT = [
 ]
 
 io.on('connection', async (socket) => {
-  const { partner, id, source } = socket.handshake.query
+  const { partner, id, source, platform } = socket.handshake.query
 
-  const ROOM_GENERAL = 'general'
+  socket.on('error', (error) => {
+    console.log('error', error)
+  })
 
   socket.use(([event], next) => {
     if (
@@ -71,87 +65,79 @@ io.on('connection', async (socket) => {
     next()
   })
 
-  if (partner && id) {
-    const roomName = `event:${partner}-${id}`
-    await socket.join([roomName, ROOM_GENERAL])
-    socket.to(roomName).emit('join-room', `${source} joined`)
+  const roomName = `event:${partner}-${id}-${platform}`
+  await socket.join(roomName)
 
-    const handleQOSL1 = (eventName) => (data, callback) => {
-      const eventListenName = `on-${eventName}`
+  const handleQOSL1 = (eventName) => (data) => {
+    const eventListenName = `on-${eventName}`
 
-      let timer
-      if (callback && typeof callback === 'function') {
-        // socket.to(roomName).emit(eventName, data)
-        timer = setInterval(() => {
-          socket.to(roomName).emit(
-            eventListenName,
-            data,
-            () => {
-              callback({
-                status: 'ok',
-                code: 200
-              })
-              clearInterval(timer)
-            }
-          )
-        }, 1000)
-      } else {
-        socket.to(roomName).emit(eventListenName, data)
-      }
-    }
-
-    const handleSocketMessage = (name) => {
-      socket.on(getResponseEvent(name), handleQOSL1(getResponseEvent(name)))
-      socket.on(getReqEvent(name), handleQOSL1(getReqEvent(name)))
-    }
-
-    handleSocketMessage(eventName.integration)
-    handleSocketMessage(eventName.connectWallet)
-    handleSocketMessage(eventName.signAuth)
-    handleSocketMessage(eventName.loginTelegram)
-
-    socket.on('authentication', (data, cb) => {
-      try {
-        const { signature, address } = data
-        if (!signature || !address) {
-          throw 'not authorized'
+    const emitEvent = () => {
+      socket.timeout(2000).to(roomName).emit(
+        eventListenName,
+        data,
+        (error) => {
+          if (error) {
+            console.log("🩲 🩲 => emitEvent => error:", error)
+            emitEvent()
+          }
         }
-        const addressDecoded = decodeAddressFromSig(signature, "Sign message for authenticate to connect bot coin98")
-        if (addressDecoded === address) {
-          socket.authorized = true
-          cb(true)
-        } else {
-          throw 'not authorized'
-        }
-
-      } catch (error) {
-        cb(false)
-        socket.disconnect()
-      }
-    })
-
-    socket.on('delete-room', (data) => {
-      io
-        .in(roomName)
-        .fetchSockets()
-        .then(sockets => {
-          sockets.forEach(socket => {
-            socket.leave(roomName)
-          })
-        })
-    })
-
-    socket.on('disconnect', () => {
-      socket.leave(roomName)
-    })
-  } else {
-    socket.join(ROOM_GENERAL)
+      )
+    }
+    emitEvent()
   }
 
-  socket.on('accounts-changed', (data) => {
-    console.log("🩲 🩲 => socket.on => data:", data)
-    socket.to(ROOM_GENERAL).emit('accounts-changed', true)
+  const handleSocketMessage = (name) => {
+    socket.on(getResponseEvent(name), handleQOSL1(getResponseEvent(name)))
+    socket.on(getReqEvent(name), handleQOSL1(getReqEvent(name)))
+  }
+
+  handleSocketMessage(eventName.integration)
+  handleSocketMessage(eventName.connectWallet)
+  handleSocketMessage(eventName.signAuth)
+  handleSocketMessage(eventName.loginTelegram)
+
+  socket.on('authentication', (data) => {
+    try {
+      const isVerifed = true // jwt.verify(data.token, process.env.VERIFY_SECRET_KEY_ADAPTER_TOKEN)
+      console.log("🩲 🩲 => socket.on => isVerifed:", isVerifed)
+
+      if (isVerifed) {
+        socket.authorized = true
+      } else {
+        throw 'not authorized'
+      }
+
+    } catch (error) {
+      socket.disconnect()
+    }
   })
+
+  socket.on('disconnect', () => {
+    console.log('disconnected')
+    socket.leave(roomName)
+  })
+  console.log("🩲 🩲 => socket.on => roomName:", roomName)
+
+  if (source) {
+    const emitJoinRoom = () => {
+      socket
+        .timeout(2000)
+        .to(roomName)
+        .emit(
+          'join-room',
+          `${source} joined`,
+          (error) => {
+            if (error) {
+              console.log("🩲 🩲 => emitJoinRoom => error:", error)
+              emitJoinRoom()
+            }
+          }
+        )
+    }
+    emitJoinRoom()
+  }
 })
 
-httpServer.listen(PORT)
+httpServer.listen(PORT).on('listening', () => {
+  console.log(`Server is running on http://localhost:${PORT}`)
+})
